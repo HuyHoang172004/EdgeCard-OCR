@@ -87,11 +87,11 @@ The spatial layout is configured through `student_card_template.json`, allowing 
 │   │       └── repsvtrv2.ipynb
 │   └── eval/
 │       ├── eval-stage-2/
-│       │   ├── eval_stage2_common_protocol_strict_speed.py
+│       │   ├── eval_stage2_common_protocol.py
 │       │   ├── README_stage2_common_eval.txt
-│       │   └── run_stage2_common_eval_strict_speed.bat
+│       │   └── run_stage2_common_eval.bat
 │       └── eval-stage-3/
-│           ├── evaluate_stage3_3models_onnx_cpu_fixed_paths.py
+│           ├── evaluate_stage3_3models_onnx_cpu.py
 │           └── output/
 │
 └── phase2/
@@ -103,7 +103,6 @@ The spatial layout is configured through `student_card_template.json`, allowing 
         ├── metadata/
         │   └── student_card_template.json
         ├── reproducibility/
-        │   ├── PP-OCRv6_small_studentcard.yml
         │   └── studentcard_vi_dict.txt
         └── result/
             ├── final_field_summary.csv
@@ -111,7 +110,7 @@ The spatial layout is configured through `student_card_template.json`, allowing 
             └── summary.json
 ```
 
-Model weights, raw student-card images, per-image ground truth, and per-sample prediction files are intentionally distributed separately from the source-code repository.
+Model weights are distributed separately through Hugging Face. Raw student-card images, annotations, ground-truth files, and sensitive per-sample prediction files are not publicly released.
 
 ## Phase 1: Offline Training and Model Selection
 
@@ -150,7 +149,7 @@ phase1/finetune/stage-2/PP_OCRv6_det.ipynb
 Common evaluation script:
 
 ```text
-phase1/eval/eval-stage-2/eval_stage2_common_protocol_strict_speed.py
+phase1/eval/eval-stage-2/eval_stage2_common_protocol.py
 ```
 
 The evaluation uses polygon-based one-to-one matching with `IoU >= 0.5`.
@@ -174,7 +173,7 @@ phase1/finetune/stage-3/repsvtrv2.ipynb
 For a fair CPU-speed comparison, the three exported recognizers are evaluated using the same ONNX Runtime CPU environment:
 
 ```text
-phase1/eval/eval-stage-3/evaluate_stage3_3models_onnx_cpu_fixed_paths.py
+phase1/eval/eval-stage-3/evaluate_stage3_3models_onnx_cpu.py
 ```
 
 Recognition metrics include:
@@ -278,7 +277,7 @@ Depending on the selected rule, post-processing can perform string normalization
 
 ## Datasets
 
-The experimental data are organized into four subsets.
+The experimental data were collected from student cards issued by the **Academy of Cryptography Techniques (ACTVN)** and are organized into four subsets.
 
 | Dataset | Purpose | Size |
 |---|---|---:|
@@ -287,35 +286,29 @@ The experimental data are organized into four subsets.
 | D3 | Text recognition | 18,231 text crops |
 | Dataset-E2E | End-to-end evaluation | 126 card images |
 
-The data are split at the student-ID level to prevent images of the same student from appearing in multiple splits.
+The data are split at the student-ID level to ensure that all images belonging to the same student appear in only one split, thereby preventing data leakage between the training, validation, and test sets.
 
-Raw images, annotations, and end-to-end ground truth are not stored directly in this Git repository.
+Due to privacy and data-protection considerations, the raw student-card images, annotations, and end-to-end ground-truth files are **not publicly released** in this repository.
 
-**Dataset link:** coming soon on Hugging Face.
+Researchers who wish to reproduce the experiments or request access to the dataset may contact the corresponding authors for further information and data-access arrangements.
 
-```text
-TODO: add Hugging Face dataset URL
-```
-
-> Note: Student-card data may contain personally identifiable information. Only data that are properly authorized for release should be published.
+> **Privacy note:** The dataset contains personally identifiable information, including student names, student identifiers, and class information. Public redistribution is therefore restricted.
 
 ## Model Weights
 
-Model weights are distributed separately from the Git repository to avoid storing large binary files in Git history.
+Pretrained and fine-tuned model weights are distributed separately through Hugging Face to avoid storing large binary files in the Git history.
 
-The final end-to-end pipeline requires:
+The final EdgeCard pipeline uses:
 
-- YOLO26n-Pose weights
-- YOLO26n-OBB weights
-- PP-OCRv6 Small Recognition weights
+- **Stage 1:** YOLO26n-Pose
+- **Stage 2:** YOLO26n-OBB
+- **Stage 3:** PP-OCRv6 Small Recognition
 
-Deployment formats include PyTorch `.pt`, NCNN `.param` / `.bin`, ONNX `.onnx`, and Paddle inference models where applicable.
+Weights for the alternative models evaluated in the benchmarking experiments are also provided for reproducibility, including DBNet, PP-OCRv6 Small Detection, MobileNetV3-CRNN, and RepSVTR.
 
-**Model download:** coming soon.
+Available deployment formats include PyTorch (`.pt`, `.pth`), ONNX (`.onnx`), NCNN (`.param`, `.bin`), and Paddle inference formats where applicable.
 
-```text
-TODO: add model-weight URL
-```
+**Model weights:** [Hugging Face](https://huggingface.co/Hoang17z/EdgeCard-OCR-Models)
 
 ## Installation
 
@@ -339,7 +332,7 @@ Because dataset and weight files are distributed separately, update the correspo
 A helper script is provided:
 
 ```text
-phase2/E2E-inference/run_eval_pc_yolo_obb_padding_6rules.bat
+phase2/E2E-inference/run_eval_pc.bat
 ```
 
 or run the Python evaluator directly after configuring the required paths:
@@ -427,27 +420,30 @@ Peak Resident Set Size on Raspberry Pi 4 is approximately **795 MiB**.
 
 ## Reproducibility
 
-The repository includes training notebooks for all benchmarked models, common Stage 2 evaluation code, common Stage 3 ONNX Runtime benchmark code, end-to-end PC evaluation code, Raspberry Pi 4 inference/evaluation code, template configuration, PP-OCRv6 recognition configuration, OCR character dictionary, and aggregate result files.
+The repository includes training notebooks for all benchmarked models, common Stage 2 evaluation code, common Stage 3 ONNX Runtime benchmark code, end-to-end PC evaluation code, Raspberry Pi 4 inference/evaluation code, template configuration, OCR character dictionary, and aggregate result files.
 
-The following are distributed separately:
+The trained model weights used in the experiments are distributed separately through the Hugging Face Model Hub.
+
+Due to privacy and data-protection considerations, the following resources are not publicly released:
 
 - raw student-card images
-- detection / recognition annotations
+- detection and recognition annotations
 - end-to-end ground truth
-- model weights
 - per-sample prediction files containing potentially sensitive information
+
+For reproducibility purposes, qualified researchers may contact the authors regarding possible access to the restricted data, subject to applicable institutional and privacy requirements.
 
 ## Privacy
 
-Student cards may contain personally identifiable information such as names, student identifiers, and class information.
+The student-card dataset contains personally identifiable information, including student names, student identifiers, and class information.
 
-Do not publish raw card images or per-card ground-truth files unless the data have been appropriately authorized, anonymized, or released under an approved data-sharing procedure.
+Therefore, raw card images, annotations, end-to-end ground-truth files, and other records containing identifiable student information are not publicly distributed. Access to such data is subject to appropriate authorization, institutional requirements, and privacy-protection procedures.
 
 ## Paper
 
 This repository accompanies the EdgeCard research project:
 
-**EdgeCard: Real-Time Student Card Detection and Recognition on Low-Power Devices**
+**EdgeCard: Student Card Detection and Recognition on Low-Power Devices**
 
 Publication information will be added after acceptance/publication.
 
@@ -457,7 +453,7 @@ Citation information will be updated after publication.
 
 ```bibtex
 @misc{edgecard,
-  title  = {EdgeCard: Real-Time Student Card Detection and Recognition on Low-Power Devices},
+  title  = {EdgeCard: Student Card Detection and Recognition on Low-Power Devices},
   author = {Le Duc Thuan and Vu Thi Linh and Nguyen Huy Hoang and Duong Thi Thu Trang},
   year   = {2026},
   note   = {Manuscript}
@@ -468,4 +464,3 @@ Citation information will be updated after publication.
 
 A project license has not yet been specified.
 
-Before public release, add an appropriate `LICENSE` file and update this section accordingly.
