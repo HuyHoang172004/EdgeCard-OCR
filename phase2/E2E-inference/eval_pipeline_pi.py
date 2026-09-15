@@ -91,20 +91,131 @@ def nearest(value,cands,max_dist=1):
     best=min((edit_distance(value,x),x) for x in cands)
     return best[1] if best[0]<=max_dist else value
 
-def postprocess(field,text,dic):
+def _dict_candidates(dic,field,cfg,default_key=None):
+    key=cfg.get("dict_key") or default_key
+    if key and isinstance(dic.get(key),list):
+        return dic.get(key,[])
+    if isinstance(dic.get(field),list):
+        return dic.get(field,[])
+    plural=f"{field}s"
+    if isinstance(dic.get(plural),list):
+        return dic.get(plural,[])
+    return []
+
+def _apply_identifier_pattern(value,pattern):
+    if not pattern:
+        return value
+    out=[]
+    for i,ch in enumerate(value):
+        if i>=len(pattern):
+            out.append(ch)
+            continue
+        token=pattern[i].upper()
+        if token=="L":
+            out.append(ch.translate(LETTER_MAP))
+        elif token=="D":
+            out.append(ch.translate(DIGIT_MAP))
+        else:
+            out.append(ch)
+    return "".join(out)
+
+def postprocess(field,text,dic,config=None):
     s=norm(text)
-    if field=='student_id':
-        x=re.sub(r'[^A-Za-z0-9]','',s).upper()
-        if len(x)>=8: x=x[:2].translate(LETTER_MAP)+x[2:].translate(DIGIT_MAP)
-        return nearest(x,dic.get('student_ids',[]),1)
-    if field=='course':
-        x=s.upper().replace('/','-').replace('–','-').replace('—','-').replace(' ','').translate(DIGIT_MAP)
-        m=re.search(r'(\d{4})-(\d{4})',x); x=f'{m.group(1)}-{m.group(2)}' if m else x
-        return nearest(x,dic.get('courses',[]),1)
-    if field=='class':
-        return nearest(re.sub(r'[^A-Za-z0-9]','',s).upper(),dic.get('classes',[]),1)
-    if field=='name':
-        return nearest(s,dic.get('names',[]),1) if dic.get('names') else s
+    cfg=config if isinstance(config,dict) else {}
+    rule=config if isinstance(config,str) else cfg.get("postprocess","auto")
+    rule=str(rule or "auto").strip().lower()
+
+    # JSON cũ không khai báo postprocess vẫn giữ hành vi tương đương cho 4 field hiện tại.
+    auto_defaults={
+        "name":{"postprocess":"dictionary_text","dict_key":"names"},
+        "course":{"postprocess":"year_range","dict_key":"courses"},
+        "class":{"postprocess":"identifier","dict_key":"classes"},
+        "student_id":{"postprocess":"identifier","dict_key":"student_ids","pattern":"LLDDDDDD"}
+    }
+    if rule=="auto":
+        base=auto_defaults.get(str(field).lower(),{"postprocess":"free_text"})
+        cfg={**base,**cfg}
+        rule=str(cfg.get("postprocess","free_text")).strip().lower()
+
+    # Tương thích với tên rule cũ; bên trong vẫn quy về 6 rule chung.
+    if rule=="name":
+        cfg={"dict_key":"names",**cfg}
+        rule="dictionary_text"
+    elif rule in ("class","alnum_upper"):
+        cfg={"dict_key":"classes",**cfg}
+        rule="identifier"
+    elif rule=="student_id":
+        cfg={"dict_key":"student_ids","pattern":"LLDDDDDD",**cfg}
+        rule="identifier"
+    elif rule=="course":
+        cfg={"dict_key":"courses",**cfg}
+        rule="year_range"
+
+    # Rule 1: free_text / normalize — fallback mặc định, không ép cấu trúc.
+    if rule in ("free_text","normalize","none","pass","passthrough"):
+        return s
+
+    # Rule 2: identifier — mã SV, lớp, khóa dạng K20, mã định danh...
+    if rule=="identifier":
+        extra=str(cfg.get("extra_chars",cfg.get("allowed_extra_chars","")))
+        allowed_extra=set(extra)
+        x="".join(ch for ch in s.upper() if ch.isalnum() or ch in allowed_extra)
+        x=_apply_identifier_pattern(x,str(cfg.get("pattern","")).strip())
+        cands=_dict_candidates(dic,field,cfg)
+        return nearest(x,cands,int(cfg.get("max_dist",1))) if cands else x
+
+    # Rule 3: year_range — khoảng năm như 2023-2026 hoặc 2023 - 2026.
+    if rule=="year_range":
+        x=s.upper().replace("/","-").replace("–","-").replace("—","-").translate(DIGIT_MAP)
+        m=re.search(r"(\d{4})(\s*-\s*)(\d{4})",x)
+        if m:
+            style=str(cfg.get("separator_style","preserve")).lower()
+            if style=="compact":sep="-"
+            elif style=="spaced":sep=" - "
+            else:sep=m.group(2)
+            x=f"{m.group(1)}{sep}{m.group(3)}"
+        default_key="courses" if str(field).lower()=="course" else None
+        cands=_dict_candidates(dic,field,cfg,default_key)
+        return nearest(x,cands,int(cfg.get("max_dist",1))) if cands else x
+
+    # Rule 4: date — ngày sinh/ngày cấp/ngày hết hạn; chỉ sửa khi ngày hợp lệ.
+    if rule=="date":
+        x=s.upper().translate(DIGIT_MAP)
+        m=re.search(r"(\d{1,2})\s*([./-])\s*(\d{1,2})\s*[./-]\s*(\d{4})",x)
+        if not m:
+            return s
+        day,month,year=int(m.group(1)),int(m.group(3)),int(m.group(4))
+        try:
+            import datetime
+            datetime.date(year,month,day)
+        except ValueError:
+            return s
+        sep=str(cfg.get("separator",m.group(2)))
+        zero_pad=bool(cfg.get("zero_pad",False))
+        dd=f"{day:02d}" if zero_pad else str(day)
+        mm=f"{month:02d}" if zero_pad else str(month)
+        return f"{dd}{sep}{mm}{sep}{year:04d}"
+
+    # Rule 5: dictionary_text — văn bản có tập giá trị hợp lệ biết trước.
+    if rule=="dictionary_text":
+        cands=_dict_candidates(dic,field,cfg)
+        return nearest(s,cands,int(cfg.get("max_dist",1))) if cands else s
+
+    # Rule 6: enum — tập giá trị nhỏ, match không phân biệt hoa/thường.
+    if rule=="enum":
+        vals=cfg.get("values",[])
+        if not isinstance(vals,list) or not vals:
+            vals=_dict_candidates(dic,field,cfg)
+        if not vals:
+            return s
+        for v in vals:
+            if norm(v).casefold()==s.casefold():
+                return norm(v)
+        max_dist=int(cfg.get("max_dist",1))
+        best=min((edit_distance(s.casefold(),norm(v).casefold()),norm(v)) for v in vals)
+        return best[1] if best[0]<=max_dist else s
+
+    # Rule không nhận diện: an toàn nhất là chỉ normalize và giữ output OCR.
     return s
 
 class Pipeline:
@@ -112,6 +223,8 @@ class Pipeline:
         self.args=args
         self.card_w=int(tpl['card_size']['width']); self.card_h=int(tpl['card_size']['height'])
         self.field_rois={k:v['roi'] for k,v in tpl['fields'].items()}
+        # Giữ cấu hình từng field để Stage 4 dùng cùng rule hậu xử lý như PC.
+        self.field_configs={k:dict(v) for k,v in tpl['fields'].items()}
         self.iog_th=float(tpl.get('spatial_filter',{}).get('threshold',0.5)) if args.iog_th<0 else args.iog_th
         self.pose=YOLO(args.pose_weights,task='pose')
         self.obb=YOLO(args.obb_weights,task='obb')
@@ -260,7 +373,7 @@ def main():
 
         t=time.perf_counter(); boxes,assigned=pipe.stage2(card); stage2_ms=(time.perf_counter()-t)*1000
         t=time.perf_counter(); raw,conf=pipe.stage3(card,assigned); stage3_ms=(time.perf_counter()-t)*1000
-        t=time.perf_counter(); final={f:postprocess(f,raw[f],post_dic) for f in FIELDS}; stage4_ms=(time.perf_counter()-t)*1000
+        t=time.perf_counter(); final={f:postprocess(f,raw[f],post_dic,pipe.field_configs.get(f,{})) for f in FIELDS}; stage4_ms=(time.perf_counter()-t)*1000
         total_ms=(time.perf_counter()-total_start)*1000; complete_output=all(bool(final[f]) for f in FIELDS)
 
         row={'image':p.name,'gt_key':gt_key,'status':'ok','stage1_ms':stage1_ms,'stage2_ms':stage2_ms,'stage3_ms':stage3_ms,'stage4_ms':stage4_ms,'total_ms':total_ms,'pipeline_success':True,'complete_output':complete_output,'det_count':len(boxes)}
