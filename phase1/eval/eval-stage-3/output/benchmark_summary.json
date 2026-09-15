@@ -1,0 +1,55 @@
+{
+  "runtime": "ONNX Runtime CPUExecutionProvider",
+  "onnxruntime_version": "1.23.2",
+  "cpu_threads": 4,
+  "batch_size": 1,
+  "input_shape": [
+    3,
+    48,
+    320
+  ],
+  "warmup": 30,
+  "test_samples": 1855,
+  "latency_scope": "decoded image in RAM -> preprocess -> ONNX inference -> CTC decode; disk I/O excluded",
+  "models": [
+    {
+      "Model": "MobileNetV3-CRNN",
+      "Samples": 1855,
+      "Correct": 1822,
+      "Wrong": 33,
+      "Exact Acc (%)": 98.22102425876011,
+      "CER (%)": 0.2589182968929804,
+      "NED (%)": 99.73471189166123,
+      "Latency (ms)": 10.230343073425749,
+      "Median Latency (ms)": 9.944099991116673,
+      "P95 Latency (ms)": 12.722080020466818,
+      "FPS": 97.74843256210941
+    },
+    {
+      "Model": "PP-OCRv6 Small Rec",
+      "Samples": 1855,
+      "Correct": 1837,
+      "Wrong": 18,
+      "Exact Acc (%)": 99.02964959568733,
+      "CER (%)": 0.11096498438270591,
+      "NED (%)": 99.90838138190287,
+      "Latency (ms)": 8.612629164429507,
+      "Median Latency (ms)": 8.058699953835458,
+      "P95 Latency (ms)": 11.563030019169673,
+      "FPS": 116.10856347212055
+    },
+    {
+      "Model": "RepSVTR",
+      "Samples": 1855,
+      "Correct": 1819,
+      "Wrong": 36,
+      "Exact Acc (%)": 98.05929919137466,
+      "CER (%)": 0.1972710833470327,
+      "NED (%)": 99.82509833477017,
+      "Latency (ms)": 10.894173962839771,
+      "Median Latency (ms)": 10.026499978266656,
+      "P95 Latency (ms)": 14.963510009692982,
+      "FPS": 91.79218207924883
+    }
+  ]
+}

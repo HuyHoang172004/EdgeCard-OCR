@@ -1,0 +1,49 @@
+{
+  "template_name": "kma_student_card_v1",
+  "card_size": {
+    "width": 856,
+    "height": 540
+  },
+  "fields": {
+    "name": {
+      "display_name": "Họ và tên",
+      "roi": [
+        410.08,
+        179.33,
+        791.06,
+        230.08
+      ]
+    },
+    "course": {
+      "display_name": "Khóa",
+      "roi": [
+        411.44,
+        241.59,
+        594.82,
+        279.48
+      ]
+    },
+    "class": {
+      "display_name": "Lớp",
+      "roi": [
+        411.44,
+        297.08,
+        544.74,
+        335.65
+      ]
+    },
+    "student_id": {
+      "display_name": "Số thẻ",
+      "roi": [
+        408.73,
+        353.24,
+        597.53,
+        395.2
+      ]
+    }
+  },
+  "spatial_filter": {
+    "method": "iog",
+    "threshold": 0.5
+  }
+}

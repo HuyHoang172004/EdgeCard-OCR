@@ -1,0 +1,89 @@
+{
+  "pipeline": "YOLO26n-Pose -> Warp -> YOLO26n-OBB -> ROI/IoG -> PP-OCRv6 Small Rec -> Post-process",
+  "device": "CPU",
+  "stage2_detector": "YOLO26n-OBB",
+  "obb_conf": 0.25,
+  "obb_imgsz": 640,
+  "obb_crop_padding": 0.08,
+  "iog_threshold": 0.4,
+  "images_total": 126,
+  "ground_truth_cards": 126,
+  "unmatched_images": [],
+  "status_counts": {
+    "ok": 126
+  },
+  "pipeline_success_pct": 100.0,
+  "complete_output_pct": 92.85714285714286,
+  "complete_gt_cards_evaluated": 126,
+  "card_exact_accuracy_pct": 86.5079365079365,
+  "final_field_metrics": [
+    {
+      "field": "name",
+      "n": 126,
+      "coverage_pct": 99.20634920634922,
+      "exact_accuracy_pct": 89.68253968253968,
+      "cer_pct": 1.7828200972447326
+    },
+    {
+      "field": "course",
+      "n": 126,
+      "coverage_pct": 95.23809523809523,
+      "exact_accuracy_pct": 95.23809523809523,
+      "cer_pct": 4.761904761904762
+    },
+    {
+      "field": "class",
+      "n": 126,
+      "coverage_pct": 95.23809523809523,
+      "exact_accuracy_pct": 95.23809523809523,
+      "cer_pct": 4.655172413793103
+    },
+    {
+      "field": "student_id",
+      "n": 126,
+      "coverage_pct": 96.82539682539682,
+      "exact_accuracy_pct": 96.82539682539682,
+      "cer_pct": 3.1746031746031744
+    },
+    {
+      "field": "OVERALL",
+      "n": 504,
+      "coverage_pct": 96.62698412698413,
+      "exact_accuracy_pct": 94.24603174603175,
+      "cer_pct": 3.192652525694293
+    }
+  ],
+  "latency": [
+    {
+      "stage": "stage1_ms",
+      "mean_ms": 96.63009602855522,
+      "median_ms": 93.77965002204292,
+      "p95_ms": 124.64242502755951
+    },
+    {
+      "stage": "stage2_ms",
+      "mean_ms": 82.3803746025078,
+      "median_ms": 79.37195000704378,
+      "p95_ms": 101.63207499135751
+    },
+    {
+      "stage": "stage3_ms",
+      "mean_ms": 289.6131269836111,
+      "median_ms": 294.9760000046808,
+      "p95_ms": 321.84127501386683
+    },
+    {
+      "stage": "stage4_ms",
+      "mean_ms": 0.052861111249685996,
+      "median_ms": 0.04744998295791447,
+      "p95_ms": 0.07979998190421611
+    },
+    {
+      "stage": "total_ms",
+      "mean_ms": 468.6812039631944,
+      "median_ms": 468.7622000055853,
+      "p95_ms": 539.1674249985954
+    }
+  ],
+  "note": "Template JSON dùng cho runtime; Ground-truth JSON chỉ dùng chấm output cuối."
+}

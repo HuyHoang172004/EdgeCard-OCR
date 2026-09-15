@@ -1,0 +1,75 @@
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ============================================================
+# Virtual environments
+# ============================================================
+.venv/
+venv/
+env/
+pipeline_env/
+
+# ============================================================
+# IDE
+# ============================================================
+.vscode/
+.idea/
+
+# ============================================================
+# OS
+# ============================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================================
+# PaddleOCR source / external framework
+# ============================================================
+PaddleOCR/
+
+# ============================================================
+# Model weights / exported models
+# ============================================================
+phase2/E2E-inference/weights/
+
+*.pt
+*.pth
+*.onnx
+*.pdiparams
+*.pdmodel
+*.ncnn.bin
+
+# ============================================================
+# Private evaluation images / student-card data
+# ============================================================
+phase2/E2E-inference/test-card/
+phase2/E2E-inference/result/visualizations/
+
+# ============================================================
+# Evaluation outputs containing per-sample information
+# ============================================================
+phase2/E2E-inference/result/per_image_results.csv
+phase2/E2E-inference/result/field_results.csv
+
+phase1/eval/eval-stage-2/output_stage2_fair_eval_strict/
+phase1/eval/eval-stage-3/output/*_predictions.csv
+
+# End-to-end ground truth is distributed with the dataset
+phase2/E2E-inference/metadata/pipeline_gt_all.json
+phase2/E2E-inference/metadata/pipeline_gt_complete.json
+
+# ============================================================
+# Logs / temporary files
+# ============================================================
+*.log
+*.tmp
+*.temp
