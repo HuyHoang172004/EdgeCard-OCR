@@ -290,9 +290,13 @@ The data are split at the student-ID level to ensure that all images belonging t
 
 Due to privacy and data-protection considerations, the raw student-card images, annotations, and end-to-end ground-truth files are **not publicly released** in this repository.
 
+For reference, a small set of representative student-card images is provided at the following link to illustrate the visual characteristics and layout of the data used in this study:
+
+**Sample images:** [View representative student-card images](https://drive.google.com/drive/folders/1p0hIUrsuHtTDTiSAAe6VnqwPQyCpQxXC?usp=drive_link)
+
 Researchers who wish to reproduce the experiments or request access to the dataset may contact the corresponding authors for further information and data-access arrangements.
 
-> **Privacy note:** The dataset contains personally identifiable information, including student names, student identifiers, and class information. Public redistribution is therefore restricted.
+> **Privacy note:** The dataset contains personally identifiable information, including student names, student identifiers, and class information. Public redistribution is therefore restricted. The publicly shared sample images are provided only with appropriate authorization.
 
 ## Model Weights
 
